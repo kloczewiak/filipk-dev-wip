@@ -37,14 +37,16 @@ export default function Contact() {
 
         <motion.a
           href="mailto:hello@filipk.dev"
-
           className="inline-block px-8 py-4 bg-accent text-background font-bold rounded-full text-lg hover:bg-accent-light transition-colors"
           initial={{ opacity: 0, y: 20 }}
-          whileInView={{ opacity: 1, y: 0 }}
+          whileInView={{ opacity: 1, y: 0, transition: { duration: 0.5, delay: 0.5 } }}
           viewport={{ once: true }}
-          transition={{ duration: 0.5, delay: 0.5 }}
-          whileHover={{ scale: 1.05, boxShadow: "0 0 30px rgba(247, 127, 67, 0.4)" }}
-          whileTap={{ scale: 0.97 }}
+          whileHover={{
+            scale: 1.05,
+            boxShadow: "0 0 30px rgba(247, 127, 67, 0.4)",
+            transition: { duration: 0.2 },
+          }}
+          whileTap={{ scale: 0.97, transition: { duration: 0.1 } }}
         >
           say hello
         </motion.a>
@@ -59,8 +61,7 @@ export default function Contact() {
         transition={{ delay: 0.8 }}
       >
         <p>
-          built with{" "}
-          <span className="text-accent">Next.js</span>,{" "}
+          built with <span className="text-accent">Next.js</span>,{" "}
           <span className="text-accent">Motion</span>, and a{" "}
           <span className="text-accent">lot of orange</span>
         </p>
