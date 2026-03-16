@@ -10,7 +10,7 @@ const ORBIT_PADDING_X = 20;
 const ORBIT_PADDING_Y = 12;
 
 export default function Pet() {
-  const { getTargets } = usePetContext();
+  const { getTargets, getActiveId } = usePetContext();
 
   const x = useMotionValue(-100);
   const y = useMotionValue(-100);
@@ -25,21 +25,29 @@ export default function Pet() {
   const orbitAngle = useRef(0);
   const frame = useRef(0);
 
-  // Find which target is closest to vertical center of the viewport
   const findActiveTarget = (): HTMLElement | null => {
     const targets = getTargets();
     if (targets.size === 0) return null;
 
+    // Prefer the explicitly active target
+    const activeId = getActiveId();
+    if (activeId) {
+      const entry = targets.get(activeId);
+      if (entry) return entry.el;
+    }
+
+    // Fallback: closest to vertical center of viewport (skip active-only targets)
     const viewportCenter = window.innerHeight / 2;
 
     const best = targets
       .values()
-      .reduce<{ el: HTMLElement; dist: number } | null>((acc, el) => {
-        const rect = el.getBoundingClientRect();
+      .reduce<{ el: HTMLElement; dist: number } | null>((acc, entry) => {
+        if (entry.type === "active-only") return acc;
+        const rect = entry.el.getBoundingClientRect();
         if (rect.bottom < -100 || rect.top > window.innerHeight + 100)
           return acc;
         const dist = Math.abs(rect.top + rect.height / 2 - viewportCenter);
-        return !acc || dist < acc.dist ? { el, dist } : acc;
+        return !acc || dist < acc.dist ? { el: entry.el, dist } : acc;
       }, null);
 
     return best ? best.el : null;

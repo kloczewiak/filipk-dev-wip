@@ -6,10 +6,12 @@ import {
   useTransform,
   useSpring,
   useInView,
+  useMotionValueEvent,
   type MotionValue,
 } from "motion/react";
-import { useRef, type RefObject } from "react";
+import { useRef, useState, useEffect, type RefObject } from "react";
 import PetTarget from "./pet/PetTarget";
+import { usePetContext, type PetTargetType } from "./pet/PetContext";
 
 interface ExperienceItem {
   title: string;
@@ -58,11 +60,19 @@ function ExperienceCard({
   index,
   scrollYProgress,
   containerRef,
+  isLatestActive,
+  onActivate,
+  onDeactivate,
+  targetType,
 }: {
   item: ExperienceItem;
   index: number;
   scrollYProgress: MotionValue<number>;
   containerRef: RefObject<HTMLDivElement | null>;
+  isLatestActive: boolean;
+  onActivate: () => void;
+  onDeactivate: () => void;
+  targetType: PetTargetType;
 }) {
   const ref = useRef<HTMLDivElement>(null);
   const isInView = useInView(ref, { once: false, margin: "-100px 0px" });
@@ -76,21 +86,37 @@ function ExperienceCard({
     return dotTop / container.offsetHeight;
   };
 
-  const dotBorder = useTransform(scrollYProgress, (v) =>
-    v >= getThreshold() ? "var(--color-accent)" : "var(--color-card-border)",
-  );
-  const dotBg = useTransform(scrollYProgress, (v) =>
-    v >= getThreshold() ? "var(--color-accent)" : "var(--color-background)",
-  );
-  const dotScaleRaw = useTransform(scrollYProgress, (v) =>
-    v >= getThreshold() ? 1.3 : 0.8,
-  );
-  const dotScale = useSpring(dotScaleRaw, { stiffness: 400, damping: 15, mass: 0.5 });
+  const dotIsLit = useTransform(scrollYProgress, (v) => v >= getThreshold());
 
-  const glowOpacityRaw = useTransform(scrollYProgress, (v) =>
-    v >= getThreshold() ? 0.3 : 0,
+  useMotionValueEvent(dotIsLit, "change", (lit) => {
+    if (lit) onActivate();
+    else onDeactivate();
+  });
+
+  const dotBorder = useTransform(dotIsLit, (lit) =>
+    lit ? "var(--color-accent)" : "var(--color-card-border)",
   );
-  const glowOpacity = useSpring(glowOpacityRaw, { stiffness: 300, damping: 20 });
+  const dotBg = useTransform(dotIsLit, (lit) =>
+    lit ? "var(--color-accent)" : "var(--color-background)",
+  );
+  const dotScaleRaw = useTransform(
+    dotIsLit,
+    (lit) => (lit ? 1.3 : 0.8) as number,
+  );
+  const dotScale = useSpring(dotScaleRaw, {
+    stiffness: 400,
+    damping: 15,
+    mass: 0.5,
+  });
+
+  const glowOpacityRaw = useTransform(
+    dotIsLit,
+    (lit) => (lit ? 0.3 : 0) as number,
+  );
+  const glowOpacity = useSpring(glowOpacityRaw, {
+    stiffness: 300,
+    damping: 20,
+  });
 
   return (
     <motion.div
@@ -155,7 +181,7 @@ function ExperienceCard({
         </motion.span>
 
         <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-2">
-          <PetTarget className="inline-block">
+          <PetTarget className="inline-block" active={isLatestActive} type={targetType}>
             <h3 className="text-xl font-bold text-foreground">{item.title}</h3>
           </PetTarget>
           <span className="text-sm font-mono text-muted">{item.period}</span>
@@ -185,12 +211,41 @@ function ExperienceCard({
 
 export default function Experience() {
   const containerRef = useRef<HTMLDivElement>(null);
+  const [latestActiveIndex, setLatestActiveIndex] = useState(-1);
+  const [timelineDone, setTimelineDone] = useState(false);
+  const { setActiveId } = usePetContext();
   const { scrollYProgress } = useScroll({
     target: containerRef,
     offset: ["start center", "end center"],
   });
 
   const lineHeight = useTransform(scrollYProgress, [0, 1], ["0%", "100%"]);
+
+  const prevProgress = useRef(0);
+
+  // Clear active pet target at boundaries
+  useMotionValueEvent(scrollYProgress, "change", (v) => {
+    const wasAtEnd = prevProgress.current >= 1;
+    const wasAtStart = prevProgress.current <= 0;
+
+    if (v <= 0) {
+      setLatestActiveIndex(-1);
+      setActiveId(null);
+      setTimelineDone(false);
+    } else if (v >= 1) {
+      // Line fully done — last card becomes passive so pet transitions smoothly
+      setLatestActiveIndex(-1);
+      setActiveId(null);
+      setTimelineDone(true);
+    } else if (wasAtEnd) {
+      setTimelineDone(false);
+      setLatestActiveIndex(experiences.length - 1);
+    } else if (wasAtStart) {
+      setLatestActiveIndex(0);
+    }
+
+    prevProgress.current = v;
+  });
 
   return (
     <section className="py-32 px-6 max-w-3xl mx-auto">
@@ -229,6 +284,18 @@ export default function Experience() {
             index={index}
             scrollYProgress={scrollYProgress}
             containerRef={containerRef}
+            isLatestActive={latestActiveIndex === index}
+            onActivate={() => setLatestActiveIndex(index)}
+            onDeactivate={() =>
+              setLatestActiveIndex((prev) =>
+                prev === index ? index - 1 : prev,
+              )
+            }
+            targetType={
+              timelineDone && index === experiences.length - 1
+                ? "passive"
+                : "active-only"
+            }
           />
         ))}
       </div>
