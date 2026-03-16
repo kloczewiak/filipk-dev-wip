@@ -12,7 +12,6 @@ export default function Contact() {
         viewport={{ once: true, margin: "-100px" }}
         transition={{ duration: 0.7 }}
       >
-        <PetTarget className="inline-block">
         <motion.h2
           className="text-4xl md:text-5xl font-bold mb-6"
           initial={{ opacity: 0, scale: 0.9 }}
@@ -20,16 +19,10 @@ export default function Contact() {
           viewport={{ once: true }}
           transition={{ duration: 0.6, delay: 0.1 }}
         >
-          let&apos;s{" "}
-          <motion.span
-            className="text-accent inline-block"
-            whileHover={{ rotate: 12, scale: 1.1 }}
-            transition={{ type: "spring", stiffness: 300 }}
-          >
-            talk
-          </motion.span>
+          <PetTarget className="inline-block">
+            let&apos;s <span className="text-accent inline-block">talk</span>
+          </PetTarget>
         </motion.h2>
-        </PetTarget>
 
         <motion.p
           className="text-muted text-lg mb-10 max-w-md mx-auto"
