@@ -5,11 +5,11 @@ import {
   useScroll,
   useTransform,
   useSpring,
-  useInView,
+
   useMotionValueEvent,
   type MotionValue,
 } from "motion/react";
-import { useRef, useState, useEffect, type RefObject } from "react";
+import { useRef, useState, type RefObject } from "react";
 import PetTarget from "./pet/PetTarget";
 import { usePetContext, type PetTargetType } from "./pet/PetContext";
 
@@ -75,13 +75,12 @@ function ExperienceCard({
   targetType: PetTargetType;
 }) {
   const ref = useRef<HTMLDivElement>(null);
-  const isInView = useInView(ref, { once: false, margin: "-100px 0px" });
 
   // Compute threshold dynamically: dot's pixel offset / container height
   const getThreshold = () => {
     const container = containerRef.current;
     const card = ref.current;
-    if (!container || !card) return 0;
+    if (!container || !card) return Infinity;
     const dotTop = card.offsetTop + DOT_OFFSET;
     return dotTop / container.offsetHeight;
   };
@@ -123,7 +122,8 @@ function ExperienceCard({
       ref={ref}
       className="relative pl-8 md:pl-12 pb-16 last:pb-0"
       initial={{ opacity: 0 }}
-      animate={isInView ? { opacity: 1 } : { opacity: 0 }}
+      whileInView={{ opacity: 1 }}
+      viewport={{ once: true, margin: "-100px 0px" }}
       transition={{ duration: 0.5 }}
     >
       {/* Timeline dot */}
@@ -147,11 +147,8 @@ function ExperienceCard({
       <motion.div
         className="bg-card-bg border border-card-border rounded-xl p-6 hover:border-accent/40 transition-colors"
         initial={{ x: 60, opacity: 0, filter: "blur(8px)" }}
-        animate={
-          isInView
-            ? { x: 0, opacity: 1, filter: "blur(0px)" }
-            : { x: 60, opacity: 0, filter: "blur(8px)" }
-        }
+        whileInView={{ x: 0, opacity: 1, filter: "blur(0px)" }}
+        viewport={{ once: true, margin: "-100px 0px" }}
         transition={{ duration: 0.6, delay: index * 0.1 }}
         whileHover={{
           y: -4,
@@ -168,9 +165,8 @@ function ExperienceCard({
             backgroundColor: "rgba(247, 127, 67, 0.1)",
           }}
           initial={{ opacity: 0, scale: 0.8 }}
-          animate={
-            isInView ? { opacity: 1, scale: 1 } : { opacity: 0, scale: 0.8 }
-          }
+          whileInView={{ opacity: 1, scale: 1 }}
+          viewport={{ once: true, margin: "-100px 0px" }}
           transition={{ duration: 0.4, delay: 0.2 + index * 0.1 }}
         >
           {item.type === "professional"
@@ -181,7 +177,11 @@ function ExperienceCard({
         </motion.span>
 
         <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-2">
-          <PetTarget className="inline-block" active={isLatestActive} type={targetType}>
+          <PetTarget
+            className="inline-block"
+            active={isLatestActive}
+            type={targetType}
+          >
             <h3 className="text-xl font-bold text-foreground">{item.title}</h3>
           </PetTarget>
           <span className="text-sm font-mono text-muted">{item.period}</span>
@@ -197,7 +197,8 @@ function ExperienceCard({
               key={tag}
               className="text-xs font-mono px-3 py-1 rounded-full bg-background border border-card-border text-muted"
               initial={{ opacity: 0, y: 10 }}
-              animate={isInView ? { opacity: 1, y: 0 } : { opacity: 0, y: 10 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, margin: "-100px 0px" }}
               transition={{ duration: 0.3, delay: 0.3 + i * 0.05 }}
             >
               {tag}
