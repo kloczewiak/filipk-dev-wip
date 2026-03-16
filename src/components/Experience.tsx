@@ -1,7 +1,14 @@
 "use client";
 
-import { motion, useScroll, useTransform, useInView } from "motion/react";
-import { useRef } from "react";
+import {
+  motion,
+  useScroll,
+  useTransform,
+  useSpring,
+  useInView,
+  type MotionValue,
+} from "motion/react";
+import { useRef, type RefObject } from "react";
 import PetTarget from "./pet/PetTarget";
 
 interface ExperienceItem {
@@ -43,15 +50,47 @@ const experiences: ExperienceItem[] = [
   },
 ];
 
+/** The dot is positioned at `top: 0.5rem` (8px) inside each card wrapper. */
+const DOT_OFFSET = 8;
+
 function ExperienceCard({
   item,
   index,
+  scrollYProgress,
+  containerRef,
 }: {
   item: ExperienceItem;
   index: number;
+  scrollYProgress: MotionValue<number>;
+  containerRef: RefObject<HTMLDivElement | null>;
 }) {
   const ref = useRef<HTMLDivElement>(null);
   const isInView = useInView(ref, { once: false, margin: "-100px 0px" });
+
+  // Compute threshold dynamically: dot's pixel offset / container height
+  const getThreshold = () => {
+    const container = containerRef.current;
+    const card = ref.current;
+    if (!container || !card) return 0;
+    const dotTop = card.offsetTop + DOT_OFFSET;
+    return dotTop / container.offsetHeight;
+  };
+
+  const dotBorder = useTransform(scrollYProgress, (v) =>
+    v >= getThreshold() ? "var(--color-accent)" : "var(--color-card-border)",
+  );
+  const dotBg = useTransform(scrollYProgress, (v) =>
+    v >= getThreshold() ? "var(--color-accent)" : "var(--color-background)",
+  );
+  const dotScaleRaw = useTransform(scrollYProgress, (v) =>
+    v >= getThreshold() ? 1.3 : 0.8,
+  );
+  const dotScale = useSpring(dotScaleRaw, { stiffness: 400, damping: 15, mass: 0.5 });
+
+  const glowOpacityRaw = useTransform(scrollYProgress, (v) =>
+    v >= getThreshold() ? 0.3 : 0,
+  );
+  const glowOpacity = useSpring(glowOpacityRaw, { stiffness: 300, damping: 20 });
 
   return (
     <motion.div
@@ -63,27 +102,19 @@ function ExperienceCard({
     >
       {/* Timeline dot */}
       <motion.div
-        className="absolute left-0 top-2 w-4 h-4 rounded-full border-2 border-accent bg-background z-10"
-        initial={{ scale: 0 }}
-        animate={isInView ? { scale: 1 } : { scale: 0 }}
-        transition={{
-          duration: 0.4,
-          delay: 0.1,
-          type: "spring",
-          stiffness: 200,
+        className="absolute left-0 top-2 w-4 h-4 rounded-full border-2 z-10"
+        style={{
+          borderColor: dotBorder,
+          backgroundColor: dotBg,
+          scale: dotScale,
         }}
       />
 
       {/* Animated glow behind the dot */}
       <motion.div
         className="absolute left-[-4px] top-0 w-6 h-6 rounded-full bg-accent/30 blur-sm z-0"
-        initial={{ scale: 0, opacity: 0 }}
-        animate={
-          isInView
-            ? { scale: [0, 1.5, 1], opacity: [0, 0.6, 0.3] }
-            : { scale: 0, opacity: 0 }
-        }
-        transition={{ duration: 0.6, delay: 0.1 }}
+        style={{ opacity: glowOpacity }}
+        transition={{ duration: 0.4 }}
       />
 
       {/* Card */}
@@ -192,7 +223,13 @@ export default function Experience() {
         </div>
 
         {experiences.map((item, index) => (
-          <ExperienceCard key={index} item={item} index={index} />
+          <ExperienceCard
+            key={index}
+            item={item}
+            index={index}
+            scrollYProgress={scrollYProgress}
+            containerRef={containerRef}
+          />
         ))}
       </div>
     </section>
