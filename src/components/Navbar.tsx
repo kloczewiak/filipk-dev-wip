@@ -20,7 +20,6 @@ export default function Navbar() {
         href="#"
         className="text-xl font-bold font-mono"
         whileHover={{ scale: 1.05 }}
-
       >
         <span className="text-accent">f</span>
         <span className="text-foreground">k</span>
@@ -33,7 +32,6 @@ export default function Navbar() {
             key={link.label}
             href={link.href}
             className="text-sm font-mono text-muted hover:text-accent transition-colors relative"
-    
             initial={{ opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.4, delay: 1.2 + i * 0.1 }}

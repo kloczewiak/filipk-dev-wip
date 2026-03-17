@@ -23,9 +23,12 @@ export function PetProvider({ children }: { children: React.ReactNode }) {
   const targets = useRef(new Map<string, TargetEntry>());
   const activeId = useRef<string | null>(null);
 
-  const register = useCallback((id: string, el: HTMLElement, type: PetTargetType) => {
-    targets.current.set(id, { el, type });
-  }, []);
+  const register = useCallback(
+    (id: string, el: HTMLElement, type: PetTargetType) => {
+      targets.current.set(id, { el, type });
+    },
+    [],
+  );
 
   const unregister = useCallback((id: string) => {
     targets.current.delete(id);
@@ -41,7 +44,9 @@ export function PetProvider({ children }: { children: React.ReactNode }) {
   const getActiveId = useCallback(() => activeId.current, []);
 
   return (
-    <PetContext value={{ register, unregister, getTargets, setActiveId, getActiveId }}>
+    <PetContext
+      value={{ register, unregister, getTargets, setActiveId, getActiveId }}
+    >
       {children}
     </PetContext>
   );
