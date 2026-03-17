@@ -5,7 +5,6 @@ import {
   useScroll,
   useTransform,
   useSpring,
-
   useMotionValueEvent,
   type MotionValue,
 } from "motion/react";
@@ -213,7 +212,6 @@ function ExperienceCard({
 export default function Experience() {
   const containerRef = useRef<HTMLDivElement>(null);
   const [latestActiveIndex, setLatestActiveIndex] = useState(-1);
-  const [timelineDone, setTimelineDone] = useState(false);
   const { setActiveId } = usePetContext();
   const { scrollYProgress } = useScroll({
     target: containerRef,
@@ -227,22 +225,16 @@ export default function Experience() {
   // Clear active pet target at boundaries
   useMotionValueEvent(scrollYProgress, "change", (v) => {
     const wasAtEnd = prevProgress.current >= 1;
-    const wasAtStart = prevProgress.current <= 0;
 
     if (v <= 0) {
       setLatestActiveIndex(-1);
       setActiveId(null);
-      setTimelineDone(false);
     } else if (v >= 1) {
       // Line fully done — last card becomes passive so pet transitions smoothly
       setLatestActiveIndex(-1);
       setActiveId(null);
-      setTimelineDone(true);
     } else if (wasAtEnd) {
-      setTimelineDone(false);
       setLatestActiveIndex(experiences.length - 1);
-    } else if (wasAtStart) {
-      setLatestActiveIndex(0);
     }
 
     prevProgress.current = v;
@@ -293,9 +285,7 @@ export default function Experience() {
               )
             }
             targetType={
-              timelineDone && index === experiences.length - 1
-                ? "passive"
-                : "active-only"
+              index === experiences.length - 1 ? "passive" : "active-only"
             }
           />
         ))}
