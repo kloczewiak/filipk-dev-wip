@@ -2,15 +2,22 @@
 
 import {
   motion,
+  AnimatePresence,
   useScroll,
   useTransform,
   useSpring,
   useMotionValueEvent,
   type MotionValue,
+  stagger,
 } from "motion/react";
-import { useRef, useState, type RefObject } from "react";
+import { useRef, useState, useEffect, type RefObject } from "react";
 import PetTarget from "./pet/PetTarget";
 import { usePetContext, type PetTargetType } from "./pet/PetContext";
+import { useLockBodyScroll } from "@/hooks/useLockBodyScroll";
+import { Badge } from "./ui/badge";
+import { Card, CardHeader, CardContent, CardFooter } from "./ui/card";
+
+const MotionCard = motion.create(Card);
 
 interface ExperienceItem {
   title: string;
@@ -19,6 +26,7 @@ interface ExperienceItem {
   description: string;
   tags: string[];
   type: "professional" | "project" | "other";
+  details?: string[];
 }
 
 const experiences: ExperienceItem[] = [
@@ -30,6 +38,11 @@ const experiences: ExperienceItem[] = [
       "Working on building and maintaining web applications. Contributing to frontend and backend systems.",
     tags: ["TypeScript", "React", "Node.js"],
     type: "professional",
+    details: [
+      "Building and maintaining web applications used by thousands of users daily.",
+      "Contributing to both frontend and backend systems with a focus on performance.",
+      "Collaborating with cross-functional teams to deliver features on tight deadlines.",
+    ],
   },
   {
     title: "Personal Project",
@@ -39,6 +52,11 @@ const experiences: ExperienceItem[] = [
       "Designed and built this portfolio site with fancy scroll animations and a love for orange.",
     tags: ["Next.js", "Framer Motion", "Tailwind"],
     type: "project",
+    details: [
+      "Custom scroll-driven timeline with animated dots and a line that follows your progress.",
+      "A pet character that follows you around the page and reacts to what you're looking at.",
+      "Fully responsive design with smooth animations powered by Framer Motion.",
+    ],
   },
   {
     title: "Freelance / Side Work",
@@ -63,6 +81,7 @@ function ExperienceCard({
   onActivate,
   onDeactivate,
   targetType,
+  onOpen,
 }: {
   item: ExperienceItem;
   index: number;
@@ -72,6 +91,7 @@ function ExperienceCard({
   onActivate: () => void;
   onDeactivate: () => void;
   targetType: PetTargetType;
+  onOpen: () => void;
 }) {
   const ref = useRef<HTMLDivElement>(null);
 
@@ -144,74 +164,212 @@ function ExperienceCard({
 
       {/* Card */}
       <motion.div
-        className="bg-card-bg border border-card-border rounded-xl p-6 hover:border-accent/40 transition-colors"
         initial={{ x: 60, opacity: 0, filter: "blur(8px)" }}
         whileInView={{ x: 0, opacity: 1, filter: "blur(0px)" }}
         viewport={{ once: true, margin: "-100px 0px" }}
         transition={{ duration: 0.6, delay: index * 0.1 }}
-        whileHover={{
-          y: -4,
-          boxShadow: "0 8px 30px rgba(247, 127, 67, 0.1)",
-          transition: { duration: 0.3 },
-        }}
       >
-        {/* Type badge */}
-        <motion.span
-          className="inline-block text-xs font-mono px-2 py-1 rounded-full mb-3 border"
-          style={{
-            borderColor: "var(--color-accent)",
-            color: "var(--color-accent)",
-            backgroundColor: "rgba(247, 127, 67, 0.1)",
+        <MotionCard
+          className="hover:border-accent/40 transition-colors cursor-pointer"
+          onClick={onOpen}
+          whileHover={{
+            y: -4,
+            boxShadow: "0 8px 30px rgba(247, 127, 67, 0.1)",
+            transition: { duration: 0.3 },
           }}
-          initial={{ opacity: 0, scale: 0.8 }}
-          whileInView={{ opacity: 1, scale: 1 }}
-          viewport={{ once: true, margin: "-100px 0px" }}
-          transition={{ duration: 0.4, delay: 0.2 + index * 0.1 }}
+          layoutId={`card-${index}`}
         >
-          {item.type === "professional"
-            ? "professional"
-            : item.type === "project"
-              ? "project"
-              : "experience"}
-        </motion.span>
-
-        <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-2">
-          <PetTarget
-            className="inline-block"
-            active={isLatestActive}
-            type={targetType}
-          >
-            <h3 className="text-xl font-bold text-foreground">{item.title}</h3>
-          </PetTarget>
-          <span className="text-sm font-mono text-muted">{item.period}</span>
-        </div>
-
-        <p className="text-accent font-medium mb-3">{item.company}</p>
-        <p className="text-muted leading-relaxed mb-4">{item.description}</p>
-
-        {/* Tags */}
-        <div className="flex flex-wrap gap-2">
-          {item.tags.map((tag, i) => (
-            <motion.span
-              key={tag}
-              className="text-xs font-mono px-3 py-1 rounded-full bg-background border border-card-border text-muted"
-              initial={{ opacity: 0, y: 10 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, margin: "-100px 0px" }}
-              transition={{ duration: 0.3, delay: 0.3 + i * 0.05 }}
+          <CardHeader>
+            <motion.div layoutId={`badge-${index}`} className="w-fit">
+              <Badge>{item.type === "other" ? "experience" : item.type}</Badge>
+            </motion.div>
+            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-1">
+              <PetTarget
+                className="inline-block"
+                active={isLatestActive}
+                type={targetType}
+              >
+                <motion.h3
+                  layoutId={`title-${index}`}
+                  className="text-xl font-bold text-foreground"
+                >
+                  {item.title}
+                </motion.h3>
+              </PetTarget>
+              <motion.span
+                layoutId={`period-${index}`}
+                className="text-sm font-mono text-muted-foreground"
+              >
+                {item.period}
+              </motion.span>
+            </div>
+            <motion.p
+              layoutId={`company-${index}`}
+              className="text-primary font-medium w-fit"
             >
-              {tag}
-            </motion.span>
-          ))}
-        </div>
+              {item.company}
+            </motion.p>
+          </CardHeader>
+          <CardContent>
+            <motion.p
+              layoutId={`description-${index}`}
+              className="text-muted-foreground leading-relaxed"
+            >
+              {item.description}
+            </motion.p>
+          </CardContent>
+          <CardFooter className="flex-wrap gap-2">
+            {item.tags.map((tag) => (
+              <motion.div key={tag} layoutId={`tag-${index}-${tag}`}>
+                <Badge variant="dark" className="px-3">
+                  {tag}
+                </Badge>
+              </motion.div>
+            ))}
+          </CardFooter>
+        </MotionCard>
       </motion.div>
     </motion.div>
+  );
+}
+
+function ExperienceModal({
+  item,
+  index,
+  onClose,
+}: {
+  item: ExperienceItem;
+  index: number;
+  onClose: () => void;
+}) {
+  const setLock = useLockBodyScroll();
+
+  useEffect(() => {
+    const handleKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") onClose();
+    };
+    document.addEventListener("keydown", handleKey);
+    setLock(true);
+    return () => {
+      document.removeEventListener("keydown", handleKey);
+      setLock(false);
+    };
+  }, [onClose, setLock]);
+
+  return (
+    <>
+      <motion.div
+        className="fixed inset-0 bg-background/80 backdrop-blur-sm z-40"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        exit={{ opacity: 0 }}
+        onClick={onClose}
+      />
+      <div
+        className="fixed inset-0 z-50 flex items-center justify-center p-6"
+        onClick={onClose}
+      >
+        <MotionCard
+          className="max-w-lg w-full max-h-[80vh] overflow-y-auto"
+          layoutId={`card-${index}`}
+          exit={{ opacity: 0 }}
+          onClick={(e) => e.stopPropagation()}
+        >
+          <CardHeader>
+            <motion.div layoutId={`badge-${index}`} className="w-fit">
+              <Badge>{item.type === "other" ? "experience" : item.type}</Badge>
+            </motion.div>
+            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-1">
+              <PetTarget active={true}>
+                <motion.h3
+                  layoutId={`title-${index}`}
+                  className="text-xl font-bold text-foreground"
+                >
+                  {item.title}
+                </motion.h3>
+              </PetTarget>
+              <motion.span
+                layoutId={`period-${index}`}
+                className="text-sm font-mono text-muted-foreground"
+              >
+                {item.period}
+              </motion.span>
+            </div>
+            <motion.p
+              layoutId={`company-${index}`}
+              className="text-primary font-medium w-fit"
+            >
+              {item.company}
+            </motion.p>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <motion.p
+              layoutId={`description-${index}`}
+              className="text-muted-foreground leading-relaxed"
+            >
+              {item.description}
+            </motion.p>
+
+            {/* Extended details */}
+            {item.details && (
+              <motion.ul
+                className="space-y-3"
+                initial="hidden"
+                animate="visible"
+                exit="hidden"
+                variants={{
+                  visible: {
+                    transition: {
+                      delayChildren: stagger(0.08, { startDelay: 0.23 }),
+                    },
+                  },
+                  hidden: {
+                    transition: {
+                      delayChildren: stagger(0.04, { from: "last" }),
+                    },
+                  },
+                }}
+              >
+                {item.details.map((detail, i) => (
+                  <motion.li
+                    key={i}
+                    className="flex gap-3 text-muted-foreground leading-relaxed"
+                    variants={{
+                      hidden: { opacity: 0, x: -10 },
+                      visible: { opacity: 1, x: 0 },
+                    }}
+                  >
+                    <span className="text-primary mt-1 shrink-0">▸</span>
+                    {detail}
+                  </motion.li>
+                ))}
+              </motion.ul>
+            )}
+          </CardContent>
+          <CardFooter className="flex-col gap-4 items-start">
+            <div className="flex flex-wrap gap-2">
+              {item.tags.map((tag) => (
+                <motion.div key={tag} layoutId={`tag-${index}-${tag}`}>
+                  <Badge variant="dark" className="px-3">
+                    {tag}
+                  </Badge>
+                </motion.div>
+              ))}
+            </div>
+            <p className="text-xs text-muted-foreground/50 w-full text-center font-mono">
+              esc or click outside to close
+            </p>
+          </CardFooter>
+        </MotionCard>
+      </div>
+    </>
   );
 }
 
 export default function Experience() {
   const containerRef = useRef<HTMLDivElement>(null);
   const [latestActiveIndex, setLatestActiveIndex] = useState(-1);
+  const [openIndex, setOpenIndex] = useState<number | null>(null);
   const { setActiveId } = usePetContext();
   const { scrollYProgress } = useScroll({
     target: containerRef,
@@ -277,7 +435,7 @@ export default function Experience() {
             index={index}
             scrollYProgress={scrollYProgress}
             containerRef={containerRef}
-            isLatestActive={latestActiveIndex === index}
+            isLatestActive={latestActiveIndex === index && openIndex === null}
             onActivate={() => setLatestActiveIndex(index)}
             onDeactivate={() =>
               setLatestActiveIndex((prev) =>
@@ -287,9 +445,21 @@ export default function Experience() {
             targetType={
               index === experiences.length - 1 ? "passive" : "active-only"
             }
+            onOpen={() => setOpenIndex(index)}
           />
         ))}
       </div>
+
+      <AnimatePresence>
+        {openIndex !== null && (
+          <ExperienceModal
+            key="experience-modal"
+            item={experiences[openIndex]}
+            index={openIndex}
+            onClose={() => setOpenIndex(null)}
+          />
+        )}
+      </AnimatePresence>
     </section>
   );
 }

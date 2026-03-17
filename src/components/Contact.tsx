@@ -2,6 +2,7 @@
 
 import { motion } from "motion/react";
 import PetTarget from "./pet/PetTarget";
+import { Button } from "./ui/button";
 
 export default function Contact() {
   return (
@@ -35,25 +36,29 @@ export default function Contact() {
           out.
         </motion.p>
 
-        <motion.a
-          href="mailto:hello@filipk.dev"
-          className="inline-block px-8 py-4 bg-accent text-background font-bold rounded-full text-lg hover:bg-accent-light transition-colors"
-          initial={{ opacity: 0, y: 20 }}
-          whileInView={{
-            opacity: 1,
-            y: 0,
-            transition: { duration: 0.5, delay: 0.5 },
-          }}
-          viewport={{ once: true }}
-          whileHover={{
-            scale: 1.05,
-            boxShadow: "0 0 30px rgba(247, 127, 67, 0.4)",
-            transition: { duration: 0.2 },
-          }}
-          whileTap={{ scale: 0.97, transition: { duration: 0.1 } }}
+        <Button
+          asChild
+          className="font-bold px-8 py-4 text-lg hover:bg-chart-1 transition-colors rounded-full"
         >
-          say hello
-        </motion.a>
+          <motion.a
+            href="mailto:hello@filipk.dev"
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{
+              opacity: 1,
+              y: 0,
+              transition: { duration: 0.5, delay: 0.5 },
+            }}
+            viewport={{ once: true }}
+            whileHover={{
+              scale: 1.05,
+              boxShadow: "0 0 30px rgba(247, 127, 67, 0.4)",
+              transition: { duration: 0.2 },
+            }}
+            whileTap={{ scale: 0.97, transition: { duration: 0.1 } }}
+          >
+            say hello
+          </motion.a>
+        </Button>
       </motion.div>
 
       {/* Footer */}
