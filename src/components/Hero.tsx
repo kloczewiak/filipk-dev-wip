@@ -7,12 +7,13 @@ export default function Hero() {
   return (
     <section className="relative min-h-screen flex items-center justify-center overflow-hidden">
       {/* Animated background gradient orbs */}
+      {/* Blur is on a static inner div; outer wrapper animates for Safari perf */}
       <motion.div
-        className="absolute w-[600px] h-[600px] rounded-full blur-[120px]"
-        style={{ background: "var(--color-accent)" }}
+        className="absolute"
+        style={{ willChange: "transform" }}
         initial={{ opacity: 0 }}
         animate={{
-          opacity: 0.2,
+          opacity: 1,
           x: [0, 100, -50, 0],
           y: [0, -80, 60, 0],
           scale: [1, 1.2, 0.9, 1],
@@ -23,13 +24,18 @@ export default function Hero() {
           y: { duration: 15, repeat: Infinity, ease: "easeInOut" },
           scale: { duration: 15, repeat: Infinity, ease: "easeInOut" },
         }}
-      />
+      >
+        <div
+          className="w-[600px] h-[600px] rounded-full blur-[120px] opacity-20"
+          style={{ background: "var(--color-accent)" }}
+        />
+      </motion.div>
       <motion.div
-        className="absolute w-[400px] h-[400px] rounded-full blur-[100px] -right-20 top-20"
-        style={{ background: "var(--color-accent-light)" }}
+        className="absolute -right-20 top-20"
+        style={{ willChange: "transform" }}
         initial={{ opacity: 0 }}
         animate={{
-          opacity: 0.1,
+          opacity: 1,
           x: [0, -60, 40, 0],
           y: [0, 50, -70, 0],
           scale: [1, 0.8, 1.1, 1],
@@ -40,7 +46,12 @@ export default function Hero() {
           y: { duration: 12, repeat: Infinity, ease: "easeInOut" },
           scale: { duration: 12, repeat: Infinity, ease: "easeInOut" },
         }}
-      />
+      >
+        <div
+          className="w-[400px] h-[400px] rounded-full blur-[100px] opacity-10"
+          style={{ background: "var(--color-accent-light)" }}
+        />
+      </motion.div>
 
       <div className="relative z-10 text-center px-6">
         {/* Greeting line */}
