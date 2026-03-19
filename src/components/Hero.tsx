@@ -79,7 +79,7 @@ export default function Hero() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 1.4, delay: 1.4, ease: "easeOut" }}
         >
-          building things for the web
+          in the process of building this&nbsp;website
         </motion.p>
       </div>
     </section>

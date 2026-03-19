@@ -10,18 +10,18 @@ export default function Home() {
   return (
     <PetProvider>
       <Pet />
-      <Navbar />
+      {/* <Navbar /> */}
       <main>
         <Hero />
-        <div id="about">
-          <About />
-        </div>
-        <div id="experience">
-          <Experience />
-        </div>
-        <div id="contact">
-          <Contact />
-        </div>
+        {/* <div id="about"> */}
+        {/*   <About /> */}
+        {/* </div> */}
+        {/* <div id="experience"> */}
+        {/*   <Experience /> */}
+        {/* </div> */}
+        {/* <div id="contact"> */}
+        {/*   <Contact /> */}
+        {/* </div> */}
       </main>
     </PetProvider>
   );
