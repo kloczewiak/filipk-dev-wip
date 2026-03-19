@@ -13,8 +13,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Filip K. — Developer",
-  description: "Personal portfolio of Filip K.",
+  title: "Filip Kłoczewiak - Frontend Developer",
+  description: "Personal portfolio of Filip Kłoczewiak",
 };
 
 export default function RootLayout({
